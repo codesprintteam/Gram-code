@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - GramSeva</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-card__header">
+        <div class="auth-card__logo">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2L4 8v8c0 7.2 5.1 13.9 12 16 6.9-2.1 12-8.8 12-16V8L16 2z"/>
+            <path d="M10 16l4 4 8-8"/>
+          </svg>
+          <span>GramSeva</span>
+        </div>
+        <h2 data-i18n="register">Register</h2>
+        <p data-i18n="user_desc">Register complaints and track their status</p>
+      </div>
+
+      <form id="register-form" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name" data-i18n="name">Name</label>
+            <input type="text" id="name" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="phone" data-i18n="phone">Phone Number</label>
+            <input type="tel" id="phone" class="form-input" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" data-i18n="email">Email</label>
+          <input type="email" id="email" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password" data-i18n="password">Password</label>
+          <input type="password" id="password" class="form-input" required minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label for="address" data-i18n="address">Address</label>
+          <input type="text" id="address" class="form-input" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="village" data-i18n="village">Village</label>
+            <input type="text" id="village" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="district" data-i18n="district">District</label>
+            <input type="text" id="district" class="form-input" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="state" data-i18n="state">State</label>
+            <input type="text" id="state" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="pincode" data-i18n="pincode">Pincode</label>
+            <input type="text" id="pincode" class="form-input" required pattern="[0-9]{6}">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--block" data-i18n="register">Register</button>
+      </form>
+
+      <div class="auth-card__footer">
+        <span data-i18n="already_registered">Already have an account?</span>
+        <a href="/user/login.html" data-i18n="login">Login</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      applyTranslations();
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const address = document.getElementById('address').value.trim();
+      const village = document.getElementById('village').value.trim();
+      const district = document.getElementById('district').value.trim();
+      const state = document.getElementById('state').value.trim();
+      const pincode = document.getElementById('pincode').value.trim();
+
+      if (!name || !phone || !email || !password || !address || !village || !district || !state || !pincode) {
+        showToast('Please fill in all fields.', 'error');
+        return;
+      }
+
+      // Check if user already exists
+      const existing = db.getByField('gs_users', 'email', email);
+      if (existing.length > 0) {
+        showToast('An account with this email already exists.', 'error');
+        return;
+      }
+
+      const hashedPw = await hashPassword(password);
+
+      db.insert('gs_users', {
+        user_id: generateId(),
+        name,
+        phone,
+        email,
+        password: hashedPw,
+        address,
+        village,
+        district,
+        state,
+        pincode,
+        created_at: new Date().toISOString()
+      });
+
+      showToast(t('registration_success'), 'success');
+      setTimeout(() => {
+        window.location.href = '/user/login.html';
+      }, 1500);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - GramSeva Technician</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <a href="/index.html" class="sidebar__header-logo">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2L4 8v8c0 7.2 5.1 13.9 12 16 6.9-2.1 12-8.8 12-16V8L16 2z"/>
+            <path d="M10 16l4 4 8-8"/>
+          </svg>
+          GramSeva
+        </a>
+      </div>
+      <nav class="sidebar__nav">
+        <a href="/technician/dashboard.html" class="sidebar__link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span data-i18n="dashboard">Dashboard</span>
+        </a>
+        <a href="/technician/settings.html" class="sidebar__link sidebar__link--active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+      <div class="sidebar__footer">
+        <div class="sidebar__user">
+          <div class="sidebar__avatar" id="tech-avatar">T</div>
+          <div class="sidebar__user-info">
+            <div class="sidebar__user-name" id="tech-name">Technician</div>
+            <div class="sidebar__user-role" data-i18n="tech_portal">Technician Portal</div>
+          </div>
+        </div>
+        <button class="btn btn--outline btn--block btn--sm" onclick="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="main-header">
+        <div class="main-header__left">
+          <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <h1 class="main-header__title" data-i18n="settings">Settings</h1>
+        </div>
+        <div class="main-header__right">
+          <div id="lang-container"></div>
+        </div>
+      </header>
+
+      <div class="main-body">
+        <!-- Profile Info -->
+        <div class="section-header">
+          <h2>Profile Information</h2>
+        </div>
+        <div style="background: var(--gs-white); border: 1px solid var(--gs-border); border-radius: var(--gs-radius-lg); padding: 24px; box-shadow: var(--gs-shadow-sm); margin-bottom: 32px;">
+          <div class="detail-row">
+            <div class="detail-row__label" data-i18n="tech_id">Technician ID</div>
+            <div class="detail-row__value" id="profile-id" style="font-family:monospace;"></div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-row__label" data-i18n="name">Name</div>
+            <div class="detail-row__value" id="profile-name"></div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-row__label" data-i18n="phone">Phone</div>
+            <div class="detail-row__value" id="profile-phone"></div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-row__label" data-i18n="assigned_area">Assigned Area</div>
+            <div class="detail-row__value" id="profile-area"></div>
+          </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="section-header">
+          <h2 data-i18n="change_password">Change Password</h2>
+        </div>
+        <div style="background: var(--gs-white); border: 1px solid var(--gs-border); border-radius: var(--gs-radius-lg); padding: 24px; box-shadow: var(--gs-shadow-sm); max-width: 480px;">
+          <form id="password-form" novalidate>
+            <div class="form-group">
+              <label for="current-pw">Current Password</label>
+              <input type="password" id="current-pw" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label for="new-pw">New Password</label>
+              <input type="password" id="new-pw" class="form-input" required minlength="4">
+            </div>
+            <div class="form-group">
+              <label for="confirm-pw">Confirm New Password</label>
+              <input type="password" id="confirm-pw" class="form-input" required minlength="4">
+            </div>
+            <button type="submit" class="btn btn--primary" data-i18n="change_password">Change Password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script>
+    let session;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      session = checkAuth('technician');
+      if (!session) return;
+
+      document.getElementById('tech-name').textContent = session.name;
+      document.getElementById('tech-avatar').textContent = session.name.charAt(0).toUpperCase();
+
+      // Profile info
+      document.getElementById('profile-id').textContent = session.technician_id;
+      document.getElementById('profile-name').textContent = session.name;
+      document.getElementById('profile-phone').textContent = session.phone;
+      document.getElementById('profile-area').textContent = session.area;
+
+      renderLanguageSelector('lang-container');
+      applyTranslations();
+      initSidebar();
+    });
+
+    document.getElementById('password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const currentPw = document.getElementById('current-pw').value;
+      const newPw = document.getElementById('new-pw').value;
+      const confirmPw = document.getElementById('confirm-pw').value;
+
+      if (!currentPw || !newPw || !confirmPw) {
+        showToast('Please fill in all fields.', 'error');
+        return;
+      }
+
+      if (newPw !== confirmPw) {
+        showToast('New passwords do not match.', 'error');
+        return;
+      }
+
+      if (newPw.length < 4) {
+        showToast('Password must be at least 4 characters.', 'error');
+        return;
+      }
+
+      // Verify current password
+      const tech = db.getById('gs_technicians', 'technician_id', session.technician_id);
+      if (!tech) {
+        showToast('Technician not found.', 'error');
+        return;
+      }
+
+      const currentHash = await hashPassword(currentPw);
+      if (tech.password !== currentHash) {
+        showToast('Current password is incorrect.', 'error');
+        return;
+      }
+
+      const newHash = await hashPassword(newPw);
+      db.update('gs_technicians', 'technician_id', session.technician_id, { password: newHash });
+
+      showToast('Password changed successfully!', 'success');
+      document.getElementById('password-form').reset();
+    });
+  </script>
+</body>
+</html>

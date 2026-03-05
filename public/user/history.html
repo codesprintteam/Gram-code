@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Complaints - GramSeva User</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <a href="/index.html" class="sidebar__header-logo">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2L4 8v8c0 7.2 5.1 13.9 12 16 6.9-2.1 12-8.8 12-16V8L16 2z"/>
+            <path d="M10 16l4 4 8-8"/>
+          </svg>
+          GramSeva
+        </a>
+      </div>
+      <nav class="sidebar__nav">
+        <a href="/user/home.html" class="sidebar__link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="home">Home</span>
+        </a>
+        <a href="/user/history.html" class="sidebar__link sidebar__link--active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span data-i18n="my_history">My Complaints</span>
+        </a>
+      </nav>
+      <div class="sidebar__footer">
+        <div class="sidebar__user">
+          <div class="sidebar__avatar" id="user-avatar">U</div>
+          <div class="sidebar__user-info">
+            <div class="sidebar__user-name" id="user-name">User</div>
+            <div class="sidebar__user-role" data-i18n="user_portal">User Portal</div>
+          </div>
+        </div>
+        <button class="btn btn--outline btn--block btn--sm" onclick="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="main-header">
+        <div class="main-header__left">
+          <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <h1 class="main-header__title" data-i18n="my_history">My Complaints</h1>
+        </div>
+        <div class="main-header__right">
+          <div id="lang-container"></div>
+        </div>
+      </header>
+
+      <div class="main-body">
+        <!-- Stats -->
+        <div class="stats-grid" id="stats"></div>
+
+        <!-- Filter -->
+        <div class="filter-tabs" id="filter-tabs">
+          <button class="filter-tab filter-tab--active" data-filter="all">All</button>
+          <button class="filter-tab" data-filter="Pending" data-i18n="pending">Pending</button>
+          <button class="filter-tab" data-filter="Assigned" data-i18n="assigned">Assigned</button>
+          <button class="filter-tab" data-filter="In Progress" data-i18n="in_progress">In Progress</button>
+          <button class="filter-tab" data-filter="Completed" data-i18n="completed">Completed</button>
+        </div>
+
+        <!-- Complaints List -->
+        <div class="complaints-list" id="complaints-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal">
+      <div class="modal__header">
+        <h3 data-i18n="view_details">Complaint Details</h3>
+        <button class="modal__close" onclick="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body" id="detail-body"></div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script>
+    let session;
+    let currentFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      session = checkAuth('user');
+      if (!session) return;
+
+      document.getElementById('user-name').textContent = session.name;
+      document.getElementById('user-avatar').textContent = session.name.charAt(0).toUpperCase();
+
+      renderLanguageSelector('lang-container');
+      applyTranslations();
+      initSidebar();
+      loadComplaints();
+
+      // Filter tabs
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('filter-tab--active'));
+          tab.classList.add('filter-tab--active');
+          currentFilter = tab.dataset.filter;
+          loadComplaints();
+        });
+      });
+    });
+
+    function loadComplaints() {
+      const all = db.getByField('gs_complaints', 'user_id', session.user_id);
+      const filtered = currentFilter === 'all' ? all : all.filter(c => c.status === currentFilter);
+
+      // Stats
+      const total = all.length;
+      const pending = all.filter(c => c.status === 'Pending' || c.status === 'Assigned').length;
+      const inProgress = all.filter(c => c.status === 'In Progress').length;
+      const completed = all.filter(c => c.status === 'Completed').length;
+
+      document.getElementById('stats').innerHTML = `
+        <div class="stat-card stat-card--primary">
+          <div class="stat-card__label" data-i18n="total_complaints">Total</div>
+          <div class="stat-card__value">${total}</div>
+        </div>
+        <div class="stat-card stat-card--accent">
+          <div class="stat-card__label" data-i18n="open_complaints">Open</div>
+          <div class="stat-card__value">${pending}</div>
+        </div>
+        <div class="stat-card stat-card--info">
+          <div class="stat-card__label" data-i18n="in_progress">In Progress</div>
+          <div class="stat-card__value">${inProgress}</div>
+        </div>
+        <div class="stat-card stat-card--success">
+          <div class="stat-card__label" data-i18n="resolved">Resolved</div>
+          <div class="stat-card__value">${completed}</div>
+        </div>
+      `;
+
+      // Complaints list
+      const listEl = document.getElementById('complaints-list');
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <h3 data-i18n="no_complaints">No complaints found</h3>
+            <p>Submit a complaint from the Home page to get started.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = filtered
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .map(c => `
+          <div class="complaint-card">
+            <div class="complaint-card__header">
+              <div>
+                <div class="complaint-card__title">${escapeHtml(c.title)}</div>
+                <span class="complaint-card__id">#${c.complaint_id}</span>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                ${c.priority ? priorityBadge(c.priority) : ''}
+                ${statusBadge(c.status)}
+              </div>
+            </div>
+            <div class="complaint-card__meta">
+              <span>${c.category}</span>
+              <span>${c.village}, ${c.district}</span>
+              <span>${formatDate(c.created_at)}</span>
+            </div>
+            <div class="complaint-card__desc">${escapeHtml(c.description).substring(0, 120)}${c.description.length > 120 ? '...' : ''}</div>
+            <div class="complaint-card__actions">
+              <button class="btn btn--outline btn--sm" onclick="showDetail('${c.complaint_id}')" data-i18n="view_details">View Details</button>
+              <button class="btn btn--ghost btn--sm" onclick="copyToClipboard('${c.complaint_id}', this)" data-i18n="copy">Copy ID</button>
+            </div>
+          </div>
+        `).join('');
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function showDetail(id) {
+      const c = db.getById('gs_complaints', 'complaint_id', id);
+      if (!c) return;
+
+      const techName = c.technician_id
+        ? (db.getById('gs_technicians', 'technician_id', c.technician_id)?.name || c.technician_id)
+        : 'Not assigned';
+
+      document.getElementById('detail-body').innerHTML = `
+        <div class="detail-row"><div class="detail-row__label">ID</div><div class="detail-row__value" style="font-family:monospace;">${c.complaint_id}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Title</div><div class="detail-row__value">${escapeHtml(c.title)}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Description</div><div class="detail-row__value">${escapeHtml(c.description)}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Category</div><div class="detail-row__value">${c.category}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Priority</div><div class="detail-row__value">${c.priority ? priorityBadge(c.priority) : 'Not set'}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Status</div><div class="detail-row__value">${statusBadge(c.status)}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Location</div><div class="detail-row__value">${escapeHtml(c.address)}, ${escapeHtml(c.village)}, ${escapeHtml(c.district)}, ${escapeHtml(c.state)} - ${c.pincode}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Technician</div><div class="detail-row__value">${techName}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Filed On</div><div class="detail-row__value">${formatDate(c.created_at)}</div></div>
+        ${c.image_proof ? `<div class="detail-row"><div class="detail-row__label">Proof Image</div><div class="detail-row__value"><img src="${c.image_proof}" style="max-width:300px; border-radius:8px; border:1px solid var(--gs-border);" alt="Completion proof"></div></div>` : ''}
+      `;
+
+      document.getElementById('detail-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('detail-modal').classList.remove('active');
+    }
+
+    // Close modal on overlay click
+    document.getElementById('detail-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+  </script>
+</body>
+</html>

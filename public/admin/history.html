@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History - GramSeva Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <a href="/index.html" class="sidebar__header-logo">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2L4 8v8c0 7.2 5.1 13.9 12 16 6.9-2.1 12-8.8 12-16V8L16 2z"/>
+            <path d="M10 16l4 4 8-8"/>
+          </svg>
+          GramSeva
+        </a>
+      </div>
+      <nav class="sidebar__nav">
+        <a href="/admin/dashboard.html" class="sidebar__link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span data-i18n="dashboard">Dashboard</span>
+        </a>
+        <a href="/admin/technicians.html" class="sidebar__link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span data-i18n="technicians">Technicians</span>
+        </a>
+        <a href="/admin/history.html" class="sidebar__link sidebar__link--active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span data-i18n="history">History</span>
+        </a>
+      </nav>
+      <div class="sidebar__footer">
+        <div class="sidebar__user">
+          <div class="sidebar__avatar" id="admin-avatar">A</div>
+          <div class="sidebar__user-info">
+            <div class="sidebar__user-name" id="admin-name">Administrator</div>
+            <div class="sidebar__user-role" data-i18n="admin_portal">Admin Portal</div>
+          </div>
+        </div>
+        <button class="btn btn--outline btn--block btn--sm" onclick="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="main-header">
+        <div class="main-header__left">
+          <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <h1 class="main-header__title" data-i18n="history">History</h1>
+        </div>
+        <div class="main-header__right">
+          <div id="lang-container"></div>
+        </div>
+      </header>
+
+      <div class="main-body">
+        <!-- Technician Performance -->
+        <div class="section-header">
+          <h2 data-i18n="performance">Technician Performance</h2>
+        </div>
+        <div id="perf-section" style="margin-bottom: 32px;"></div>
+
+        <!-- Completed Complaints -->
+        <div class="section-header">
+          <h2 data-i18n="completed">Completed Complaints</h2>
+        </div>
+        <div class="complaints-list" id="completed-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal">
+      <div class="modal__header">
+        <h3 data-i18n="view_details">Complaint Details</h3>
+        <button class="modal__close" onclick="closeDetailModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body" id="detail-body"></div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script>
+    let session;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      session = checkAuth('admin');
+      if (!session) return;
+
+      document.getElementById('admin-name').textContent = session.name;
+      document.getElementById('admin-avatar').textContent = session.name.charAt(0).toUpperCase();
+
+      renderLanguageSelector('lang-container');
+      applyTranslations();
+      initSidebar();
+      loadHistory();
+    });
+
+    function loadHistory() {
+      const complaints = db.getAll('gs_complaints');
+      const technicians = db.getAll('gs_technicians');
+      const completed = complaints.filter(c => c.status === 'Completed');
+
+      // Performance table
+      const perfEl = document.getElementById('perf-section');
+      if (technicians.length === 0) {
+        perfEl.innerHTML = `
+          <div class="empty-state" style="padding:32px;">
+            <p>No technicians have been created yet.</p>
+          </div>
+        `;
+      } else {
+        perfEl.innerHTML = `
+          <div class="gs-table-wrapper">
+            <table class="gs-table">
+              <thead>
+                <tr>
+                  <th data-i18n="tech_id">ID</th>
+                  <th data-i18n="name">Name</th>
+                  <th data-i18n="assigned_area">Area</th>
+                  <th>Total Assigned</th>
+                  <th data-i18n="complaints_resolved">Resolved</th>
+                  <th data-i18n="in_progress">In Progress</th>
+                  <th>Completion Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${technicians.map(t => {
+                  const totalAssigned = complaints.filter(c => c.technician_id === t.technician_id).length;
+                  const resolved = complaints.filter(c => c.technician_id === t.technician_id && c.status === 'Completed').length;
+                  const active = complaints.filter(c => c.technician_id === t.technician_id && c.status !== 'Completed').length;
+                  const rate = totalAssigned > 0 ? Math.round((resolved / totalAssigned) * 100) : 0;
+                  return `
+                    <tr>
+                      <td style="font-family:monospace; font-size:0.8125rem;">${escapeHtml(t.technician_id)}</td>
+                      <td><strong>${escapeHtml(t.name)}</strong></td>
+                      <td>${escapeHtml(t.area)}</td>
+                      <td>${totalAssigned}</td>
+                      <td><span class="badge badge--completed">${resolved}</span></td>
+                      <td><span class="badge badge--progress">${active}</span></td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <div style="flex:1; height:8px; background:var(--gs-border-light); border-radius:4px; overflow:hidden; min-width:60px;">
+                            <div style="height:100%; width:${rate}%; background:var(--gs-success); border-radius:4px; transition:width 0.3s;"></div>
+                          </div>
+                          <span style="font-size:0.8125rem; font-weight:600; color:${rate >= 70 ? 'var(--gs-success)' : rate >= 40 ? 'var(--gs-warning)' : 'var(--gs-error)'};">${rate}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      // Completed complaints list
+      const listEl = document.getElementById('completed-list');
+      if (completed.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <h3>No completed complaints yet</h3>
+            <p>Completed complaints will appear here.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = completed
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .map(c => {
+          const tech = c.technician_id
+            ? db.getById('gs_technicians', 'technician_id', c.technician_id)
+            : null;
+          return `
+            <div class="complaint-card">
+              <div class="complaint-card__header">
+                <div>
+                  <div class="complaint-card__title">${escapeHtml(c.title)}</div>
+                  <span class="complaint-card__id">#${c.complaint_id}</span>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  ${c.priority ? priorityBadge(c.priority) : ''}
+                  ${statusBadge(c.status)}
+                </div>
+              </div>
+              <div class="complaint-card__meta">
+                <span>By: ${escapeHtml(c.user_name || 'Unknown')}</span>
+                <span>${c.category}</span>
+                <span>Technician: ${tech ? escapeHtml(tech.name) : 'N/A'}</span>
+                <span>${formatDate(c.created_at)}</span>
+              </div>
+              <div class="complaint-card__actions">
+                <button class="btn btn--outline btn--sm" onclick="showDetail('${c.complaint_id}')" data-i18n="view_details">View Details</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    function showDetail(id) {
+      const c = db.getById('gs_complaints', 'complaint_id', id);
+      if (!c) return;
+
+      const tech = c.technician_id
+        ? db.getById('gs_technicians', 'technician_id', c.technician_id)
+        : null;
+
+      document.getElementById('detail-body').innerHTML = `
+        <div class="detail-row"><div class="detail-row__label">Complaint ID</div><div class="detail-row__value" style="font-family:monospace;">${c.complaint_id}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Title</div><div class="detail-row__value">${escapeHtml(c.title)}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Description</div><div class="detail-row__value">${escapeHtml(c.description)}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Filed By</div><div class="detail-row__value">${escapeHtml(c.user_name || 'Unknown')}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Category</div><div class="detail-row__value">${c.category}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Priority</div><div class="detail-row__value">${c.priority ? priorityBadge(c.priority) : 'Not set'}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Status</div><div class="detail-row__value">${statusBadge(c.status)}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Location</div><div class="detail-row__value">${escapeHtml(c.address)}, ${escapeHtml(c.village)}, ${escapeHtml(c.district)}, ${escapeHtml(c.state)} - ${c.pincode}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Technician</div><div class="detail-row__value">${tech ? escapeHtml(tech.name) + ' (' + escapeHtml(tech.area) + ')' : 'Not assigned'}</div></div>
+        <div class="detail-row"><div class="detail-row__label">Filed On</div><div class="detail-row__value">${formatDate(c.created_at)}</div></div>
+        ${c.image_proof ? `<div class="detail-row"><div class="detail-row__label">Proof Image</div><div class="detail-row__value"><img src="${c.image_proof}" style="max-width:100%; border-radius:8px; border:1px solid var(--gs-border);" alt="Completion proof"></div></div>` : ''}
+      `;
+
+      document.getElementById('detail-modal').classList.add('active');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detail-modal').classList.remove('active');
+    }
+
+    document.getElementById('detail-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeDetailModal();
+    });
+  </script>
+</body>
+</html>

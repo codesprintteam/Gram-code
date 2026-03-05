@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GramSeva - Rural Complaint Management System</title>
+  <meta name="description" content="GramSeva is a multilingual rural complaint management system connecting citizens with local authorities for quick issue resolution.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="landing">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="top-bar__logo">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 2L4 8v8c0 7.2 5.1 13.9 12 16 6.9-2.1 12-8.8 12-16V8L16 2z"/>
+          <path d="M10 16l4 4 8-8"/>
+        </svg>
+        <span data-i18n="app_name">GramSeva</span>
+      </div>
+      <div class="top-bar__actions">
+        <div id="lang-container"></div>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1 data-i18n="app_name">GramSeva</h1>
+      <p data-i18n="app_tagline">Rural Complaint Management System</p>
+    </section>
+
+    <!-- Portal Cards -->
+    <section class="portals" id="portals">
+      <a href="/user/login.html" class="portal-card">
+        <div class="portal-card__icon portal-card__icon--user">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <h3 data-i18n="user_portal">User Portal</h3>
+        <p data-i18n="user_desc">Register complaints and track their status</p>
+      </a>
+
+      <a href="/admin/login.html" class="portal-card">
+        <div class="portal-card__icon portal-card__icon--admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </div>
+        <h3 data-i18n="admin_portal">Administrator Portal</h3>
+        <p data-i18n="admin_desc">Manage complaints, assign technicians</p>
+      </a>
+
+      <a href="/technician/login.html" class="portal-card">
+        <div class="portal-card__icon portal-card__icon--tech">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <h3 data-i18n="tech_portal">Technician Portal</h3>
+        <p data-i18n="tech_desc">View assigned work and update status</p>
+      </a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+      GramSeva &copy; 2026 &mdash; Empowering Rural India
+    </footer>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/voice.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderLanguageSelector('lang-container');
+      applyTranslations();
+    });
+  </script>
+</body>
+</html>

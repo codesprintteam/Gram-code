@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - GramSeva</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-card__header">
+        <div class="auth-card__logo">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2L4 8v8c0 7.2 5.1 13.9 12 16 6.9-2.1 12-8.8 12-16V8L16 2z"/>
+            <path d="M10 16l4 4 8-8"/>
+          </svg>
+          <span>GramSeva</span>
+        </div>
+        <h2 data-i18n="login">Login</h2>
+        <p data-i18n="user_portal">User Portal</p>
+      </div>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label for="email" data-i18n="email">Email</label>
+          <input type="email" id="email" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password" data-i18n="password">Password</label>
+          <input type="password" id="password" class="form-input" required>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--block" data-i18n="login">Login</button>
+      </form>
+
+      <div class="auth-card__footer">
+        <span data-i18n="not_registered">Not registered yet? Register first.</span>
+        <a href="/user/register.html" data-i18n="register">Register</a>
+      </div>
+
+      <div style="margin-top:16px; text-align:center;">
+        <div id="lang-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderLanguageSelector('lang-container');
+      applyTranslations();
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showToast('Please fill in all fields.', 'error');
+        return;
+      }
+
+      const users = db.getByField('gs_users', 'email', email);
+      if (users.length === 0) {
+        showToast(t('not_registered'), 'info');
+        setTimeout(() => {
+          window.location.href = '/user/register.html';
+        }, 1500);
+        return;
+      }
+
+      const user = users[0];
+      const hashedPw = await hashPassword(password);
+
+      if (user.password !== hashedPw) {
+        showToast(t('login_failed'), 'error');
+        return;
+      }
+
+      setSession('user', {
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        village: user.village,
+        district: user.district,
+        state: user.state,
+        pincode: user.pincode,
+        address: user.address
+      });
+
+      window.location.href = '/user/home.html';
+    });
+  </script>
+</body>
+</html>
